@@ -3,15 +3,28 @@
 # Delegate further configuration to subtasks
 # placed in this same directory.
 
+- name: Include OS-specific variables.
+  include_vars: "{{ ansible_os_family }}.yml"
+
 - include: install.yml
 - include: configure.yml
 
 - name: Ensure supervisord is running
-  sudo: yes
+  become: yes
   service:
     name: "{{supervisord_service_name}}"
     state: running
     enabled: yes
+  when: ansible_service_mgr != "/sbin/launchd"
+  tags:
+    - init
+    - supervisor
+    - supervisord
+
+- name: Ensure supervisord is running
+  become: yes
+  command: launchctl load -w {{ supervisord_init_script }}
+  when: ansible_service_mgr == "/sbin/launchd"
   tags:
     - init
     - supervisor

@@ -7,9 +7,10 @@
 #   - `ansible_distribution`         → Debian, Ubuntu, RedHat, ...
 #   - `ansible_distribution_release` → precise, wheezy, ...
 #   - `ansible_pkg_mgr`              → apt, yum, ...
+#   - `ansible_service_mgr`          → upstart, systemd, /sbin/launchd, ...
 
 - name: Create Supervisor conf and log directories
-  sudo: yes
+  become: yes
   file:
     dest: "{{item}}"
     state: directory
@@ -17,6 +18,7 @@
     - "{{supervisord_conf_dir}}"
     - "{{supervisord_additional_conf_dir}}"
     - "{{supervisord_logs_dir}}"
+    - "{{supervisord_runtime_dir}}"
   notify: restart supervisord
   tags:
     - conf
@@ -24,7 +26,7 @@
     - supervisord
 
 - name: Configure Supervisord
-  sudo: yes
+  become: yes
   template:
     src: supervisord.conf
     dest: "{{supervisord_conf_file}}"
@@ -35,7 +37,7 @@
     - supervisord
 
 - name: Link Supervisord conf
-  sudo: yes
+  become: yes
   file:
     src: "{{supervisord_conf_file}}"
     dest: "{{supervisord_conf_file_link}}"
@@ -47,7 +49,7 @@
     - supervisord
 
 - name: Create supervisord init script
-  sudo: yes
+  become: yes
   template:
     src: "{{item}}"
     dest: "{{supervisord_init_script}}"
@@ -67,10 +69,11 @@
     - supervisord
 
 - name: Add supervisord to init
-  sudo: yes
+  become: yes
   service:
     name: "{{supervisord_service_name}}"
     enabled: yes
+  when: ansible_service_mgr != "/sbin/launchd"
   tags:
     - init
     - conf
