@@ -9,6 +9,8 @@
 #   - `ansible_pkg_mgr`              → apt, yum, ...
 #   - `ansible_service_mgr`          → upstart, systemd, /sbin/launchd, ...
 
+- include_vars: ../../../../includes/vault.yaml
+
 - name: Stat Supervisor directories
   become: yes
   stat:
